@@ -1,5 +1,12 @@
-#Pedite un turno y no esperes.
+# AVISO DE TURNOS PARA LICENCIA DE CONDUCIR
+#### Si se libera un turno enterate antes que los demás y sacalo. 
 
-##Simple webscrapper para avisarte de turnos de l1cenc14 de conduc1r cancelados 
+Es un bot que hace web scrapping de la pagina de Licencia de conducir de San Isidro. 
 
+Para los turnos de Renovación (TURNO MAÑANA) hace un web scrape cada hora y tira un notificacion si hay un turno libre. 
+
+## Futura implementación
+
+- Agregar que mes se hasta que mes se quiere buscar turno.
+- Agregar frecuencia de barrido de info.
 

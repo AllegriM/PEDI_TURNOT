@@ -39,7 +39,7 @@ async function initializeResesarch() {
             if (AVAILABLE_DAYS.length !== 0) {
                 await page.click('thead tr th[class="next"]')
                 const month = await page.$eval('.datepicker-switch', (month) => month.innerText)
-                if (month === 'Diciembre 2022') {
+                if (month === 'Noviembre 2022') {
                     return
                 }
                 await selectAvailableDayOrChangeMonth(page)
@@ -53,6 +53,7 @@ async function initializeResesarch() {
                 message: `${AVAILABLE_DAYS_ARRAY[0]}`
             })
         } else {
+            console.log("No hay turnos disponibles")
             return
         }
     } catch (e) {
@@ -61,6 +62,6 @@ async function initializeResesarch() {
 }
 
 // Run every 1 hour
-cron.schedule('0 */1 * * *', async () => {
+cron.schedule('0 */1 * * *', () => {
     initializeResesarch()
 })

@@ -1,12 +1,9 @@
 
 const { chromium } = require('playwright');
+const notifier = require('node-notifier');
+const cron = require('node-cron');
 
-// const NOT_AVAILABLE_DAYS = []
-
-// async function selectAvailableDayOrChangeMonth(page) {
-// }
-
-async function initializeResearch() {
+async function initializeResesarch() {
     const AVAILABLE_DAYS_ARRAY = []
     try {
         const browser = await chromium.launch();
@@ -50,17 +47,20 @@ async function initializeResearch() {
             await browser.close();
         }
         await selectAvailableDayOrChangeMonth(page)
-        console.log(AVAILABLE_DAYS_ARRAY)
+        if (AVAILABLE_DAYS_ARRAY[0]) {
+            notifier.notify({
+                title: 'TURNO DISPONIBLE!!',
+                message: `${AVAILABLE_DAYS_ARRAY[0]}`
+            })
+        } else {
+            return
+        }
     } catch (e) {
         console.error(e)
     }
-
 }
 
-(async () => {
-    try {
-        initializeResearch()
-    } catch (error) {
-        console.error(error)
-    }
-})();
+// Run every 1 hour
+cron.schedule('0 */1 * * *', async () => {
+    initializeResesarch()
+})

@@ -11,5 +11,9 @@
   "license": "ISC",
   "devDependencies": {
     "playwright": "^1.25.2"
+  },
+  "dependencies": {
+    "node-cron": "^3.0.2",
+    "node-notifier": "^10.0.1"
   }
 }

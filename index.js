@@ -3,6 +3,8 @@ const { chromium } = require('playwright');
 const notifier = require('node-notifier');
 const cron = require('node-cron');
 
+
+
 async function initializeResesarch() {
     const AVAILABLE_DAYS_ARRAY = []
     try {
@@ -63,5 +65,6 @@ async function initializeResesarch() {
 
 // Run every 1 hour
 cron.schedule('0 */1 * * *', () => {
+    console.log('Buscando algun turno disponible...');
     initializeResesarch()
 })

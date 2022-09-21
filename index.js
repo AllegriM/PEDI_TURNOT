@@ -2,10 +2,39 @@
 const { chromium } = require('playwright');
 const notifier = require('node-notifier');
 const cron = require('node-cron');
+const inquirer = require('inquirer');
 
+const MONTHS = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
+inquirer.prompt({
+    type: 'list',
+    name: 'tramite',
+    message: 'Que tramite desea realizar?',
+    choices: ['Ampliación', 'Duplicado', 'Licencia (Primera vez)', 'Original', 'Reemplazo', 'Renovación(Tarde)', 'Renovación(Mañana)'],
+    default: 'Renovación(Mañana)'
+}).then((answers) => {
+    // Ampliacion = 6 // Duplicado = 4 // Licencia (Primera vez) = 5 // Original = 8 // Reemplazo = 3 // Renovación(Tarde) = 130 // Renovación(Mañana) = 1
+    if (answers.tramite == 'Ampliación') console.log(`Usted eligio ${answers.tramite} como tramite`), console.log(`Buscando el turno mas cercano para tramite: ${answers.tramite}`), answers.tramite = '6';
+    if (answers.tramite == 'Duplicado') console.log(`Usted eligio ${answers.tramite} como tramite`), console.log(`Buscando el turno mas cercano para tramite: ${answers.tramite}`), answers.tramite = '4';
+    if (answers.tramite == 'Licencia (Primera vez)') console.log(`Usted eligio ${answers.tramite} como tramite`), console.log(`Buscando el turno mas cercano para tramite: ${answers.tramite}`), answers.tramite = '5';
+    if (answers.tramite == 'Original') console.log(`Usted eligio ${answers.tramite} como tramite`), console.log(`Buscando el turno mas cercano para tramite: ${answers.tramite}`), answers.tramite = '8';
+    if (answers.tramite == 'Reemplazo') console.log(`Usted eligio ${answers.tramite} como tramite`), console.log(`Buscando el turno mas cercano para tramite: ${answers.tramite}`), answers.tramite = '3';
+    if (answers.tramite == 'Renovación(Tarde)') console.log(`Usted eligio ${answers.tramite} como tramite`), console.log(`Buscando el turno mas cercano para tramite: ${answers.tramite}`), answers.tramite = '130';
+    if (answers.tramite == 'Renovación(Mañana)') console.log(`Usted eligio ${answers.tramite} como tramite`), console.log(`Buscando el turno mas cercano para tramite: ${answers.tramite}`), answers.tramite = '1';
 
-async function initializeResesarch() {
+    // Obtener la fecha dentro de 2 meses
+    const date = new Date();
+    date.setMonth(date.getMonth() + 2);
+    const TWO_MONTHS_AHEAD = `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+    // // Run every 1 hour
+    cron.schedule('0 */1 * * *', () => {
+        console.log('Buscando algun turno disponible...');
+        initializeResesarch({ TIPO_TRAMITE: answers.tramite, TWO_MONTHS_AHEAD: TWO_MONTHS_AHEAD });
+    })
+})
+
+async function initializeResesarch({ TIPO_TRAMITE, TWO_MONTHS_AHEAD }) {
+
     const AVAILABLE_DAYS_ARRAY = []
     try {
         const browser = await chromium.launch();
@@ -14,21 +43,17 @@ async function initializeResesarch() {
         // Click option 1 (Solicitar NUEVO TURNO) and wait for modal to open //
         await page.click('.option1')
         await page.waitForSelector('#process_type_id_select')
-        await page.screenshot({ path: `example1.png` })
         // Click procedure type option 'RENOVACION (ATENCION POR LA MAÑANA)'
-        await page.selectOption('#process_type_id_select', '1')
+        await page.selectOption('#process_type_id_select', TIPO_TRAMITE)
         await page.waitForLoadState('networkidle');
-        await page.screenshot({ path: `example2.png` })
         // Click input to open datepicker
         await page.click('#schedule_new_process_date')
         await page.waitForLoadState('networkidle');
-        await page.screenshot({ path: `example3.png` })
         // Select available day or change month
         const selectAvailableDayOrChangeMonth = async (page) => {
             const month = await page.$eval('.datepicker-switch', (month) => month.innerText)
             // Wait for id = loading_warning to disappear
             await page.waitForSelector('#loading_warning', { state: 'hidden' })
-            await page.screenshot({ path: `example${month}.png` })
             const AVAILABLE_DAYS = await page.$$eval('.day', (days) => days.map((day) => {
                 return { class: day.className, text: day.innerText }
             }))
@@ -40,8 +65,8 @@ async function initializeResesarch() {
             AVAILABLE_DAYS.push(AVAILABLE_DAY)
             if (AVAILABLE_DAYS.length !== 0) {
                 await page.click('thead tr th[class="next"]')
-                const month = await page.$eval('.datepicker-switch', (month) => month.innerText)
-                if (month === 'Noviembre 2022') {
+                if (month === TWO_MONTHS_AHEAD) {
+                    console.log(`No se encontraron turnos antes de la fecha: ${TWO_MONTHS_AHEAD}`)
                     return
                 }
                 await selectAvailableDayOrChangeMonth(page)
@@ -63,8 +88,4 @@ async function initializeResesarch() {
     }
 }
 
-// Run every 1 hour
-cron.schedule('0 */1 * * *', () => {
-    console.log('Buscando algun turno disponible...');
-    initializeResesarch()
-})
+
